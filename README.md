@@ -14,6 +14,7 @@ Properties:
 Dependencies for the morpher:
 * **Python 2.7** - main engine
 * **Python Crypto 2.6** - for encryption
+
 Dependencies for the code execution:
 * **Intel AES-NI** - for decryption
 
