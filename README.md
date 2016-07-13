@@ -65,6 +65,7 @@ At the publication moment, the executable was detected as a shellcode only by 2 
 [malwres](https://malwr.com/analysis/MTM4NDhkZmI2ZTZlNDNkMzkyZjRmZGY3ZWU0ZWEwMTQ/) with cuckoo2 doesn't see anything suspicious.
 
 On the reverser's perspective, IDA won't see anything neither.
+
 Radare2 would show the real instructions only if assembled by the assembler it-self however, it doesn't detects any crypto or suspicious activity for the executable.
 
 Althrough, I didn't test it personally, I think that FortiSandbox, Sophos Sandstorm, Blue Coat, GateWatcher and their derivatives might fail badly...
