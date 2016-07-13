@@ -54,9 +54,11 @@ Every file is commented and explained
 At this point, it should be pretty obvious that, the hashes would be different every time, but let's compare SSDEEPes of 2 Linux executables of the same shellcode:
 * 96:GztTHyKGQh3lo6Olv4W4zS/2WnDf74i4a4B7UEoB46keWJl09:Gzty6VOlvqSTDflmNroh,
 * 96:GQtT23yKmFUh3lo6OlOnIrFS4rkoPPf74i4a4B7UEoB46keWJ5:GQtCGWVOlOWFSsPflmNroh,
+
 Well, there's something in common, but globally those are 2 different signatures, now what about the shellcode it-self:
 * 48:eip2bR2LRNtRPORDGRopRBXR3cRzER2vRU9BnH6ksr:Srn+,
 * 48:6RjNeR2IRN7RPWRDeRokRB5R3xRz3R28RUxFT2+75eFK9iKMAdXAJKo:O9Tdwoo,
+
 Almost totally different signatures for the same morphed shellcode!
 
 At the publication moment, the executable was detected as a shellcode only by 2 out of 53 antiviruses (AVG and Ikarus) on [virustotal](https://virustotal.com/en/file/05491801b765bb080bf0f20e5fc17e2b187a521a781dd0dbb47e19f1e6fc0a98/analysis/1468267426/).
@@ -70,10 +72,15 @@ Althrough, I didn't test it personally, I think that FortiSandbox, Sophos Sandst
 ##### To put it in the nutshell
 
 Basically, it can transform a script-kid's code (or a [known-one](http://shell-storm.org/shellcode/)) into a zero-day.
+
 IDPS will fail because, it's almost impossible to make a signature and difficult to make a regular expression or heuristic analysis.
+
 Most of the sandboxes doesn't use Intel's AES-NI instructions directly, so they will not execute the code, so "everything is fine" for them, whereas it's not.
+
 The only way to defeat this type of shellcode/malware is to use an appropriate sandboxing or/and an AI.
+
 Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) in needed for the shellcode's/malware's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
+
 
 ###### Notes
 
@@ -81,5 +88,6 @@ This is still a work in progress, I will implement Windows and BSD/Mac engines a
 IDPSes and sanboxes suck.
 
 > "Tradition becomes our security, and when the mind is secure it is in decay."
+
 Jiddu Krishnamurti
 
