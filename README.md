@@ -62,11 +62,11 @@ Well, there's something in common, but globally those are 2 different signatures
 
 Almost totally different signatures for the same morphed shellcode!
 
-At the publication moment, the executable was detected as a shellcode only by 2 out of 53 antiviruses (AVG and Ikarus) on [virustotal](https://virustotal.com/en/file/05491801b765bb080bf0f20e5fc17e2b187a521a781dd0dbb47e19f1e6fc0a98/analysis/1468267426/).
+At the publication date, the executable was detected as a shellcode only by 2 out of 53 antiviruses (AVG and Ikarus) on [virustotal](https://virustotal.com/en/file/05491801b765bb080bf0f20e5fc17e2b187a521a781dd0dbb47e19f1e6fc0a98/analysis/1468267426/).
 
 [malwr](https://malwr.com/analysis/MTM4NDhkZmI2ZTZlNDNkMzkyZjRmZGY3ZWU0ZWEwMTQ/) with cuckoo2 doesn't see anything suspicious.
 
-On the reverser's perspective, IDA won't see anything neither.
+On the reverser's perspective, IDA won't see anything either.
 
 Radare2 would show the real instructions only if assembled by the assembler it-self however, it doesn't detects any crypto or suspicious activity for the executable.
 

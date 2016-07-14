@@ -3,7 +3,7 @@
 
 .data
 	.comm shellcode 32
-# an unaligned buffer for the decrypted shellcode since, it's impossible (at least, I don't know how) to store an arbitrary length in the registers using XMM, stack won't work neither
+# an unaligned buffer for the decrypted shellcode since, it's impossible (at least, I don't know how) to store an arbitrary length in the registers using XMM, stack won't work either
 # it can cause some problems with memory randomization, thus not a very good idea
 
 .globl _start
