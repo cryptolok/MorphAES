@@ -12,20 +12,16 @@ _start:
 # let's store the key
 movabs $0x1b614b73da6ac94a, %r14
 # the first half of the key is reversed and goes to the R14, because Intel is little-endian and you can't store values directly to the XMM
-movq %r14, %xmm3
-# store it in the half of XMM3 (64 to 128 bits), it's pretty hackerish and undocumented since, XMM doesn't suppose to be modified directly, but with pointers
+movq %r14, %xmm0
+# store it in the half of XMM0 (64 to 128 bits), it's pretty hackerish and undocumented since, XMM doesn't suppose to be modified directly, but with pointers
 movabs $0xc3fdbc5e697e297b, %r15
 # the second half of the key is each half-reversed and goes to the R15, because we need to swap it after
-movq %r15, %xmm0
-# store it in the helf of the XMM0
-shufps $0x1b, %xmm3, %xmm3
-# because XMM is 128 bits, we will put the first half of the key to the second half of the XMM3 and its first half will be zeroed
-shufps $0x1b, %xmm0, %xmm3
-# we will put the second half of the XMM3 to the first half of the XMM0 and the first half of the XMM0 to its second half, thus the key is entirely stored in the XMM3
-xorps %xmm0, %xmm0
-# erase XMM0
-xorps %xmm3, %xmm0
-# copy XMM3 to XMM0
+movq %r15, %xmm3
+# store it in the half of XMM3
+shufps $0x1b, %xmm0, %xmm0
+# because XMM is 128 bits, we will put the first half of the key to the second half of XMM0 and its first half will be zeroed
+shufps $0x1b, %xmm3, %xmm0
+# we will put the first half of XMM3 to th first half of XMM0, thus the key is entirely stored in XMM0
 # it's even more hackerish, but it's the best way I found to store an arbitrary value in the XMM without a pointer/buffer
 
 # let's compute the key by expanding it since, we use AES
