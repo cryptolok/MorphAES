@@ -200,7 +200,7 @@ print "		     \_|  |_/\___/|_|  | .__/|_| |_\_| |_/\____/\____/ "
 print "		                       | |                             "
 print "		                       |_|                             "
 print ""
-print "				IDPS & SandBox STEALTH KILLER"
+print "			 IDPS & SandBox & AntiVirus STEALTH KILLER"
 print ""
 
 key = Random.new().read(16)
