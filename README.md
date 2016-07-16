@@ -31,7 +31,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 
 1. Shellcode padding with NOPs (since AES is a block cipher)
 2. Shellcode encryption with a random key using AES-128-ECB (not the best, but the simplest) - polymorphism
-3. Constants randomization & logic changes - metamorphism
+3. Constants randomization, logic changes, instructions modification and rewriting - metamorphism
 
 ### HowTo
 

