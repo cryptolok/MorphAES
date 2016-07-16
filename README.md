@@ -1,7 +1,7 @@
 # MorphAES
 IDPS & SandBox STEALTH KILLER.
 
-MorphAES is the world's first polymorphic shellcode engine, with metamorphic properties and capability to bypass sandboxes, which make it undetectable for an IDPS, it's cross-platform as well and library-independent.
+MorphAES is the world's first polymorphic shellcode/malware engine, with metamorphic properties and capability to bypass sandboxes, which make it undetectable for an IDPS, it's cross-platform as well and library-independent.
 
 Properties:
 * Polymorphism (AES encryption)
