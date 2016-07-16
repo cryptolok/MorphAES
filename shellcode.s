@@ -25,10 +25,9 @@ shufps $0x1b, %xmm3, %xmm0
 # it's even more hackerish, but it's the best way I found to store an arbitrary value in the XMM without a pointer/buffer
 
 # let's compute the key by expanding it since, we use AES
-# some preparation
 movaps %xmm0, %xmm5
-pxor   %xmm2, %xmm2
-
+pxor %xmm2, %xmm2
+# erasing XMM2 is necessary, otherwise decryption might fail
 # now the first round of the expansion
 aeskeygenassist $1, %xmm0, %xmm1
 # and the scheduling
@@ -120,14 +119,12 @@ movaps %xmm0, %xmm15
 # same routine as for th key goes for the code
 movabs $0xb12ce73ee6d2f63b, %r14
 # first half of the code
-movq %r14, %xmm3
+movq %r14, %xmm0
 movabs $0xf6e4be6324a92bc8, %r15
 # second half of the code (each half-reversed)
-movq %r15, %xmm0
-shufps $0x1b, %xmm3, %xmm3
-shufps $0x1b, %xmm0, %xmm3
-xorps %xmm0, %xmm0
-xorps %xmm3, %xmm0
+movq %r15, %xmm3
+shufps $0x1b, %xmm0, %xmm0
+shufps $0x1b, %xmm3, %xmm0
 
 # the 10 round decryption
 pxor       %xmm15, %xmm0
@@ -151,14 +148,11 @@ movaps %xmm0, (%rsi)
     
 # second block decryption juste like the first-one
 movabs $0xbe28868e0cb06609, %r14
-movq %r14, %xmm3
+movq %r14, %xmm0
 movabs $0x0c4943bf832b05aa, %r15
-movq %r15, %xmm0
-
-shufps $0x1b, %xmm3, %xmm3
-shufps $0x1b, %xmm0, %xmm3
-xorps %xmm0, %xmm0
-xorps %xmm3, %xmm0
+movq %r15, %xmm3
+shufps $0x1b, %xmm0, %xmm0
+shufps $0x1b, %xmm3, %xmm0
 
 pxor       %xmm15, %xmm0
 aesdec     %xmm14, %xmm0
