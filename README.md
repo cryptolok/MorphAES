@@ -1,7 +1,7 @@
 # MorphAES
 IDPS & SandBox & AntiVirus STEALTH KILLER.
 
-MorphAES is the world's first polymorphic shellcode/malware engine, with metamorphic properties and capability to bypass sandboxes, which make it undetectable for an IDPS, it's cross-platform as well and library-independent.
+MorphAES is the world's first polymorphic shellcode/malware engine, with metamorphic properties and capability to bypass sandboxes, which makes it undetectable for an IDPS, it's cross-platform as well and library-independent.
 
 Properties:
 * Polymorphism (AES encryption)
@@ -64,7 +64,7 @@ Almost totally different signatures for the same morphed shellcode!
 
 At the publication date, the executable was detected as a shellcode only by 2 out of 53 antiviruses (AVG and Ikarus) on [virustotal](https://virustotal.com/en/file/05491801b765bb080bf0f20e5fc17e2b187a521a781dd0dbb47e19f1e6fc0a98/analysis/1468267426/), but now, it just fails to analyze.
 
-[malwr](https://malwr.com/analysis/MTM4NDhkZmI2ZTZlNDNkMzkyZjRmZGY3ZWU0ZWEwMTQ/) with cuckoo2 doesn't see anything suspicious.
+[malwr's](https://malwr.com/analysis/MTM4NDhkZmI2ZTZlNDNkMzkyZjRmZGY3ZWU0ZWEwMTQ/) with cuckoo2 doesn't see anything suspicious.
 
 On the reverser's perspective, IDA won't see anything either.
 
