@@ -188,12 +188,12 @@ else:
 	shellcode=str2hex(input) 
 print ''
 print "SHELLCODE TO MORPH : "+hex2str(shellcode)
-warnings='\xb0\xb1\xb2\xb3'
-for byte in shellcode:
-	for char in warnings:
-		if byte == char:
-			print ''
-			print 'WARNING : IF YOU ARE USING 8-BIT REGISTERS (AL, BL, CL, DL) DECRYPTION MIGHT FAIL'
+#warnings='\xb0\xb1\xb2\xb3'
+#for byte in shellcode:
+#	for char in warnings:
+#		if byte == char:
+#			print ''
+#			print 'WARNING : IF YOU ARE USING 8-BIT REGISTERS (AL, BL, CL, DL) DECRYPTION MIGHT FAIL'
 # for some reason, sometimes decipher fails to stop after the shellcode and continue the execution through the memory, it's probably linked to an abnormal padding/addressing, but further debugging is necessary (should I erase XMMs before modification?)
 shellcode=pad(shellcode)
 # AES is a block cipher, it operates blocks of a fixed size (16 bytes in our case), so we need to make the code modulo the block size, in order it could be encrypted
