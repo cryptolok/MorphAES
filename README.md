@@ -38,7 +38,7 @@ For Linux:
 ```bash
 sudo apt-get install python python-crypto
 ```
-Execute the Pyhton script and enter your shellcode or nothing for a default Linux shell.
+Execute the Pyhton script and enter your shellcode or nothing for a default Linux shell. You can specify your own execution address as well.
 
 It is possible to build and execute on Windows/BSD/Mac as well, but I'm still testing it.
 
