@@ -82,7 +82,7 @@ Most of the sandboxes doesn't use Intel's AES-NI instructions directly, so they 
 
 The only way to defeat this type of shellcode/malware is to use an appropriate sandboxing or/and an AI.
 
-Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) in needed for the shellcode's/malware's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
+Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) is needed for the shellcode's/malware's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
 
 
 ###### Notes
