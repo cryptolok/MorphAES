@@ -24,6 +24,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 * Metamorphism is not very robust and can be detected using regular expressions (but can be improved pretty easily)
 * Unicode null bytes might still work (but who cares?)
 * It will only work on 64-bit Intel processors with [AES-NI](http://ark.intel.com/search/advanced/?s=t&AESTech=true) support, but since all the user's PCs (like Pentium, Celeron, i3, i5, i7) and the industry's servers (like Xeon) have it, it's more a specification, rather than a limitation, thus a 32-bit implementation is unpractical
+* Almost any shellcode is guarantee to work however, an arbitrary code (malware) doesn't
 * Windows/BSD PoC and executables are in progress...
 
 ## How it works
