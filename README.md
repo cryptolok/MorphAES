@@ -1,7 +1,7 @@
 # MorphAES
 IDPS & SandBox & AntiVirus STEALTH KILLER.
 
-MorphAES is the world's first polymorphic shellcode/malware engine, with metamorphic properties and capability to bypass sandboxes, which makes it undetectable for an IDPS, it's cross-platform as well and library-independent.
+MorphAES is the world's first polymorphic shellcode engine, with metamorphic properties and capability to bypass sandboxes, which makes it undetectable for an IDPS, it's cross-platform as well and library-independent.
 
 Properties:
 * Polymorphism (AES encryption)
@@ -10,7 +10,7 @@ Properties:
 * IDPS stealthing (the total number of possible signatures is more the number of atoms in the universe for one given code)
 * Sandbox evasion (special assembly instructions)
 * Realism (no null bytes)
-* Can produce executables (malwares)
+* Can produce executables
 * Input code can have arbitrary length
 
 Dependencies for the morpher:
@@ -24,7 +24,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 * Metamorphism is not very robust and can be detected using regular expressions (but can be improved pretty easily)
 * Unicode null bytes might still work (but who cares?)
 * It will only work on 64-bit Intel processors with [AES-NI](http://ark.intel.com/search/advanced/?s=t&AESTech=true) support, but since all the user's PCs (like Pentium, Celeron, i3, i5, i7) and the industry's servers (like Xeon) have it, it's more a specification, rather than a limitation, thus a 32-bit implementation is unpractical
-* Almost any shellcode is guarantee to work however, an arbitrary code (malware) doesn't
+* Almost any shellcode is guarantee to work however, an arbitrary code doesn't
 * Windows/BSD PoC and executables are in progress...
 
 ## How it works
@@ -81,9 +81,9 @@ IDPS will fail because, it's almost impossible to make a signature and difficult
 
 Most of the sandboxes doesn't use Intel's AES-NI instructions directly, so they will not execute the code, so "everything is fine" for them, whereas it's not.
 
-The only way to defeat this type of shellcode/malware is to use an appropriate sandboxing or/and an AI.
+The only way to defeat this type of shellcode is to use an appropriate sandboxing or/and an AI.
 
-Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) is needed for the shellcode's/malware's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
+Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) is needed for the shellcode's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
 
 
 ###### Notes
