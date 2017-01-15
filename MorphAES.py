@@ -235,7 +235,8 @@ for i in range(8):
 		xmm[i][j]=xmm[sub[i]][sub[j]]
 		xmm[sub[i]][sub[j]]=tmp
 
-# let's make it with some style
+# let's make it with some style in red
+print "\033[31m"
 print '		                         __________'
 print '		                      .~#########%%;~.'
 print '		                     /############%%;`\ '
