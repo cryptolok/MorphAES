@@ -12,6 +12,7 @@ Properties:
 * Realism (no null bytes)
 * Can produce executables
 * Input code can have arbitrary length
+* Possibility for a NOP sled
 
 Dependencies for the morpher:
 * **Python 2.7** - main engine
@@ -29,7 +30,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 
 ## How it works
 
-1. Shellcode padding with NOPs (since AES is a block cipher)
+1. Shellcode padding with NOPs (since AES is a block cipher) and adding an optional NOP sled
 2. Shellcode encryption with a random key using AES-128-ECB (not the best, but the simplest) - polymorphism
 3. Constants randomization, logic changes, instructions modification and rewriting - metamorphism
 
