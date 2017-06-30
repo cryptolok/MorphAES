@@ -48,14 +48,17 @@ Execute the Pyhton script and enter your shellcode or nothing for a default Linu
 
 It is also possible to build and execute on Windows/BSD/Mac, but I'm still testing it.
 
-You can also test the Linux PoC in assembly:
+You can test the Linux PoC in assembly:
 ```bash
 as shellcodePoC.s -o shellcodePoC.o
 ld shellcodePoC.o -o shellcodePoC
 ./shellcodePoC
 ```
-
-or compile the last lines of shellcode.txt using GCC.
+or in C:
+```bash
+gcc -m64 -fno-stack-protector -z execstack shellcode.c -o shellcode
+./shellcode
+```
 
 Every file is commented and explained
 
