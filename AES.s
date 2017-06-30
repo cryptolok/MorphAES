@@ -50,8 +50,10 @@ jl exit
 pxor %xmm5,%xmm0
 aesenc %xmm6,%xmm0
 aesenc %xmm7,%xmm0
+# round 3 omiting
 aesenc %xmm9,%xmm0
 aesenc %xmm10,%xmm0
+# round 6 omiting
 aesenc %xmm12,%xmm0
 aesenc %xmm13,%xmm0
 aesenc %xmm14,%xmm0
