@@ -9,14 +9,13 @@ Properties:
 * Platform independent (Linux/BSD/Windows)
 * IDPS stealthing (the total number of possible signatures is more the number of atoms in the universe for one given code)
 * Sandbox evasion (special assembly instructions)
-* Realism (no null bytes)
+* Bad characters avoiding (\x00, \x04, \x05, \x09, \x0a, \x20)
 * Can produce executables
 * Input code can have arbitrary length
 * Possibility for a NOP sled
 
 Dependencies for the morpher:
 * **Python 2.7** - main engine
-* **Python Crypto 2.6** - for encryption
 
 Dependencies for the code execution:
 * **64-bit Intel AES-NI** - for decryption
@@ -25,31 +24,39 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 * Metamorphism is not very robust and can be detected using regular expressions (but can be improved pretty easily)
 * Unicode null bytes might still work (but who cares?)
 * It will only work on 64-bit Intel processors with [AES-NI](http://ark.intel.com/search/advanced/?s=t&AESTech=true) support, but since all the user's PCs (like Pentium, Celeron, i3, i5, i7) and the industry's servers (like Xeon) have it, it's more a specification, rather than a limitation, thus a 32-bit implementation is unpractical
-* Almost any shellcode is guarantee to work however, an arbitrary code doesn't
+* Almost any shellcode is guarantee to work however, an arbitrary code doesn't (to avoid malware abuse)
+* If using self-rewrite option, the maximum length for the payload to encode is 112 bytes
 * Windows/BSD PoC and executables are in progress...
 
 ## How it works
 
 1. Shellcode padding with NOPs (since AES is a block cipher) and adding an optional NOP sled
-2. Shellcode encryption with a random key using AES-128-ECB (not the best, but the simplest) - polymorphism
+2. Shellcode encryption with a random key using custom AES-128-ECB (not the best, but the simplest) - polymorphism
 3. Constants randomization, logic changes, instructions modification and rewriting - metamorphism
 
 ### HowTo
 
+You will have to assemble my custom AESNI-128-ECB implementation and put it in the same folder with the python script.
+
 For Linux:
 ```bash
-sudo apt-get install python python-crypto
+sudo apt-get install python
+as AES.s -o AES.o
+ld AES.o -o AES
 ```
 Execute the Pyhton script and enter your shellcode or nothing for a default Linux shell. You can specify your own execution address as well.
 
-It is possible to build and execute on Windows/BSD/Mac as well, but I'm still testing it.
+It is also possible to build and execute on Windows/BSD/Mac, but I'm still testing it.
 
-You can also use the Linux PoC in assembly:
+You can also test the Linux PoC in assembly:
 ```bash
-as shellcode.s -o shellcode.o
-ld shellcode.o -o shellcode
-./shellcode
+as shellcodePoC.s -o shellcodePoC.o
+ld shellcodePoC.o -o shellcodePoC
+./shellcodePoC
 ```
+
+or compile the last lines of shellcode.txt using GCC.
+
 Every file is commented and explained
 
 #### Tests
@@ -84,14 +91,16 @@ Most of the sandboxes doesn't use Intel's AES-NI instructions directly, so they 
 
 The only way to defeat this type of shellcode is to use an appropriate sandboxing or/and an AI.
 
-Notice that, the whole execution is done by a pure assembly, no Python (or shitty OpenSSL) is needed for the shellcode's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
+Of course DEP/NX/CANARY/ASLR should work as well.
+
+Notice that, the whole execution is done by a pure assembly, no Python (or OpenSSL) is needed for the shellcode's execution since, I use built-in assembly instructions only, thus it's system-independent (surely, you will have to assemble it for each-one by adapting the instructions/opcodes, but they are still same).
 
 
 ###### Notes
 
 This is still a work in progress, I will implement Windows and BSD/Mac engines and PoCs ASAP.
 
-IDPSes and sanboxes suck.
+IDPSes and sanboxes are the past.
 
 > "Tradition becomes our security, and when the mind is secure it is in decay."
 
