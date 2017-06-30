@@ -7,8 +7,9 @@
 # DISCLAIMER! this implementation has been purposely weakened in order to avoid bad characters for shellcode
 
 .data
-	.comm buffer, 16, 16
+.comm buffer, 16, 16
 
+.text
 .globl _start
 _start:
 # key scheduling
@@ -42,40 +43,6 @@ aeskeygenassist $54,%xmm0,%xmm1
 callq scheduling
 movaps %xmm0,%xmm15
 
-read:
-# reads 16 bytes from input
-mov    $0x0,%rax
-mov    $0x0,%rdi
-mov    $buffer,%rsi
-mov    $16,%rdx
-syscall 
-movaps buffer,%xmm0
-retq   
-
-write:
-# write 16 bytes to output
-movaps %xmm0,buffer
-mov    $0x1,%rax
-mov    $0x1,%rdi
-mov    $buffer,%rsi
-mov    $16,%rdx
-syscall 
-retq   
-
-exit:
-mov    $0x3c,%rax
-mov    $0x0,%rdi
-syscall 
-
-scheduling:
-pshufd $0b11111111,%xmm1,%xmm1
-shufps $0b00010000,%xmm0,%xmm2
-pxor   %xmm2,%xmm0
-shufps $0b10001100,%xmm0,%xmm2
-pxor   %xmm2,%xmm0
-pxor   %xmm1,%xmm0
-retq   
-
 crypt:
 callq read
 cmp $16,%rax
@@ -91,3 +58,37 @@ aesenc %xmm14,%xmm0
 aesenclast %xmm15,%xmm0
 callq write
 jmp crypt
+
+read:
+# reads 16 bytes from input
+mov $0x0,%rax
+mov $0x0,%rdi
+mov $buffer,%rsi
+mov $16,%rdx
+syscall 
+movaps buffer,%xmm0
+retq   
+
+write:
+# write 16 bytes to output
+movaps %xmm0,buffer
+mov $0x1,%rax
+mov $0x1,%rdi
+mov $buffer,%rsi
+mov $16,%rdx
+syscall 
+retq   
+
+exit:
+mov $0x3c,%rax
+mov $0x0,%rdi
+syscall 
+
+scheduling:
+pshufd $0b11111111,%xmm1,%xmm1
+shufps $0b00010000,%xmm0,%xmm2
+pxor %xmm2,%xmm0
+shufps $0b10001100,%xmm0,%xmm2
+pxor %xmm2,%xmm0
+pxor %xmm1,%xmm0
+retq
