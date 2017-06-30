@@ -6,7 +6,7 @@
 # it takes a key concatenated with the text to encrypt and outputs the ciphertext
 # DISCLAIMER! this implementation has been purposely weakened in order to avoid bad characters for shellcode
 
-.bss
+.data
 	.comm buffer, 16, 16
 
 .globl _start
@@ -46,7 +46,7 @@ read:
 # reads 16 bytes from input
 mov    $0x0,%rax
 mov    $0x0,%rdi
-mov    buffer,%rsi
+mov    $buffer,%rsi
 mov    $16,%rdx
 syscall 
 movaps buffer,%xmm0
@@ -57,7 +57,7 @@ write:
 movaps %xmm0,buffer
 mov    $0x1,%rax
 mov    $0x1,%rdi
-mov    buffer,%rsi
+mov    $buffer,%rsi
 mov    $16,%rdx
 syscall 
 retq   
@@ -68,7 +68,7 @@ mov    $0x0,%rdi
 syscall 
 
 scheduling:
-pshufd $0xff,%xmm1,%xmm1
+pshufd $0b11111111,%xmm1,%xmm1
 shufps $0b00010000,%xmm0,%xmm2
 pxor   %xmm2,%xmm0
 shufps $0b10001100,%xmm0,%xmm2
@@ -80,7 +80,7 @@ crypt:
 callq read
 cmp $16,%rax
 jl exit
-pxor   %xmm5,%xmm0
+pxor %xmm5,%xmm0
 aesenc %xmm6,%xmm0
 aesenc %xmm7,%xmm0
 aesenc %xmm9,%xmm0
@@ -91,4 +91,3 @@ aesenc %xmm14,%xmm0
 aesenclast %xmm15,%xmm0
 callq write
 jmp crypt
-
