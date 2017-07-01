@@ -72,6 +72,7 @@ def morphSig(length=False):
 		register=randint(0,63)
 		signature+=instructions[instruction]+registers[register]
 # in reality, registers are the same (8 only), but the extension is indicated by the flag, so the number of actual possibilities is twice as less ((32*64)^3 ~ 10 billion)
+	print "******* SIG : "+hex2str(signature)
 	return signature
 
 def hex2str(code):
@@ -355,11 +356,13 @@ if address:
 signatureStart=morphSig()
 # and add a NOP sled (or not)
 print ''
-sled=raw_input('SPECIFY THE NOP SLED\'S LENGTH (blank for none, maximum 10 000) : ')
+sled=raw_input('SPECIFY THE NOP SLED LENGTH MODULO %4 (blank for none, maximum 10 000) : ')
 if sled:
-	sled=int(sled)
+	sled=int(sled)/4
+	print ''
+	print 'NOP SLED LENGTH MODULO %4 (some opcodes might be added or deleted): '+str(sled*4)
 print ''
-if sled <= 10000:
+if sled <= 10000 and sled > 0:
 	NOPsled=morphSig(sled)
 else:
 	NOPsled=''
