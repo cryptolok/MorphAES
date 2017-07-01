@@ -10,7 +10,7 @@ Properties:
 * IDPS stealthing (the total number of possible signatures is more the number of atoms in the universe for one given code)
 * Sandbox evasion (special assembly instructions)
 * Bad characters avoiding (\x00, \x04, \x05, \x09, \x0a, \x20)
-* Can produce executables
+* Can produce executables and be exploited remotely
 * Input code can have arbitrary length
 * Possibility for a NOP sled
 
