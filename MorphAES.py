@@ -355,13 +355,13 @@ if address:
 signatureStart=morphSig()
 # and add a NOP sled (or not)
 print ''
-sled=raw_input('SPECIFY THE NOP SLED LENGTH MODULO %4 (blank for none, maximum 10 000) : ')
+sled=raw_input('SPECIFY THE NOP SLED LENGTH MODULO %4 (blank for none, maximum 100 000) : ')
 if sled:
 	sled=int(sled)/4
 	print ''
 	print 'NOP SLED LENGTH MODULO %4 (some opcodes might be added or deleted): '+str(sled*4)
 print ''
-if sled <= 10000 and sled > 0:
+if sled <= 100000 and sled > 0:
 	NOPsled=morphSig(sled)
 else:
 	NOPsled=''
