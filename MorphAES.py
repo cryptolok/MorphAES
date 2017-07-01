@@ -72,7 +72,6 @@ def morphSig(length=False):
 		register=randint(0,63)
 		signature+=instructions[instruction]+registers[register]
 # in reality, registers are the same (8 only), but the extension is indicated by the flag, so the number of actual possibilities is twice as less ((32*64)^3 ~ 10 billion)
-	print "******* SIG : "+hex2str(signature)
 	return signature
 
 def hex2str(code):
