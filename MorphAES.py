@@ -244,7 +244,6 @@ for i in range(8):
                 inner.append(str2hex(str(hex(opcode))))
                 opcode+=1
         xmm.append(inner)
-# XMMs substitution will add some difficulty for IDPSes
 sub=[1,2,3,4,5,6,7]
 shuffle(sub)
 sub.insert(0,0)
@@ -264,11 +263,14 @@ for key in sub:
 	movapsNext[index]=movapsNext[key]
 	movapsNext[key]=tmp
 	index+=1
+# this code isn't a full substitution and requires more details for XMM operations because, 0-7 instructions differs from 8-15 upon operator, thus we will need to recode the cipher and unfortunately, the current situation will leave us with some hundreds of possibilities
+# TODO improve XMM associated instructions obfuscation
 for i in range(8):
 	for j in range(8):
 		tmp=xmm[i][j]
 		xmm[i][j]=xmm[sub[i]][sub[j]]
 		xmm[sub[i]][sub[j]]=tmp
+# XMMs substitution will add some difficulty for IDPSes
 
 # let's make it with some style in red
 print "\033[31m"
