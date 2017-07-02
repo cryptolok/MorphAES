@@ -320,7 +320,7 @@ else:
 		for line in file:
 			input+=line
 		file.close()
-	elif len(input)>112:
+	elif len(input)>112*4:
 		print ""
 		print "WARNING: SHELLCODE IS TOO LONG TO BE EXPLOITED THROUGH ARGUMENTS/INPUT BUT FUNCTIONAL"
 	shellcode=str2hex(input) 
