@@ -225,6 +225,7 @@ def prepare(ciphertext,addresses):
 # the address will be not 0x600078 or 0x600310 like in assembly, but 0x600900 or 0x601280 because, GCC, anyway we can get it from RDX, thereby the shellcode will rewrite it-self
 		else:
 			storage='\x48\x83\xc2\x10\x0f\x29'+movapsNext[0]
+# making movapsNext a constant (\x02) will provide an unlimited length for payload, at the cost of higher detection probability
 # thus, the shellcode's length is arbitrary
 		decryption+=oneHalfCiphertext+twoHalfCiphertext+preparation+decrypt+storage
 	return decryption
@@ -320,9 +321,9 @@ else:
 		for line in file:
 			input+=line
 		file.close()
-	elif len(input)>112*4:
-		print ""
-		print "WARNING: SHELLCODE IS TOO LONG TO BE EXPLOITED THROUGH ARGUMENTS/INPUT BUT FUNCTIONAL"
+#	elif len(input)>112*4:
+#		print ""
+#		print "WARNING: SHELLCODE IS TOO LONG TO BE EXPLOITED THROUGH ARGUMENTS/INPUT BUT FUNCTIONAL"
 	shellcode=str2hex(input) 
 print ''
 print "SHELLCODE TO MORPH : "+hex2str(shellcode)
