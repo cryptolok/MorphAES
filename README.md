@@ -25,7 +25,6 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 * Unicode null bytes might still work (but who cares?)
 * It will only work on 64-bit Intel processors with [AES-NI](http://ark.intel.com/search/advanced/?s=t&AESTech=true) support, but since all the user's PCs (like Pentium, Celeron, i3, i5, i7) and the industry's servers (like Xeon) have it, it's more a specification, rather than a limitation, thus a 32-bit implementation is unpractical
 * Almost any shellcode is guarantee to work however, an arbitrary code doesn't (to avoid malware abuse)
-* If using self-rewrite option, the maximum length for the payload to encode is 112 bytes
 * Windows/BSD PoC and executables are in progress...
 
 ## How it works
