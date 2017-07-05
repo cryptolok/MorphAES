@@ -68,8 +68,8 @@ At this point, it should be pretty obvious that, the hashes would be different e
 * 96:GQtT23yKmFUh3lo6OlOnIrFS4rkoPPf74i4a4B7UEoB46keWJ5:GQtCGWVOlOWFSsPflmNroh,
 
 Well, there's something in common, but globally those are 2 different signatures, now what about the shellcode it-self:
-* 48:eip2bR2LRNtRPORDGRopRBXR3cRzER2vRU9BnH6ksr:Srn+,
-* 48:6RjNeR2IRN7RPWRDeRokRB5R3xRz3R28RUxFT2+75eFK9iKMAdXAJKo:O9Tdwoo,
+* 6:Cq8bnJYn4Xkm3qECaADATyEnT8snTiETiTCfhUaAP6mYGexCKdKZzX+rqVCKdKTc:xuJ0Zp2xRZof79G/KVyk/KTbA,
+* 6:vrg+T1RfLEQD/zD1DZzDJ3zDBfjDcDRJDULUwzWq0Cgk3g4zE/Yq0Cgk3gy12Ots:vLjjEszWCp3w/YCp3Nts,
 
 Almost totally different signatures for the same morphed shellcode!
 
