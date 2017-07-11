@@ -25,7 +25,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 * Unicode null bytes might still work (but who cares?)
 * It will only work on 64-bit Intel processors with [AES-NI](http://ark.intel.com/search/advanced/?s=t&AESTech=true) support, but since all the user's PCs (like Pentium, Celeron, i3, i5, i7) and the industry's servers (like Xeon) have it, it's more a specification, rather than a limitation, thus a 32-bit implementation is unpractical
 * Almost any shellcode is guarantee to work however, an arbitrary code doesn't (to avoid malware abuse)
-* Windows/BSD PoC and executables are in progress...
+* Windows/BSD PoC and executables are in progress, as well as the ARM version
 
 ## How it works
 
@@ -35,7 +35,7 @@ Nonetheless, there are some limitations (aka white-hat aspects):
 
 ### HowTo
 
-You will have to assemble my custom AESNI-128-ECB implementation and put it in the same folder with the python script.
+You will have to assemble my custom AESNI-128-ECB implementation using an Intel x64 CPU and put it in the same folder with the python script.
 
 For Linux:
 ```bash
