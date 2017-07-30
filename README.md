@@ -40,7 +40,7 @@ You will have to assemble my custom AESNI-128-ECB implementation using an Intel 
 For Linux:
 ```bash
 sudo apt-get install python
-as AES.s -o AES.o
+as --64 AES.s -o AES.o
 ld AES.o -o AES
 ```
 Execute the Pyhton script and enter your shellcode or nothing for a default Linux shell. You can specify your own execution address as well.
@@ -49,7 +49,7 @@ It is also possible to build and execute on Windows/BSD/Mac, but I'm still testi
 
 You can test the Linux PoC in assembly:
 ```bash
-as shellcodePoC.s -o shellcodePoC.o
+as --64 shellcodePoC.s -o shellcodePoC.o
 ld shellcodePoC.o -o shellcodePoC
 ./shellcodePoC
 ```
