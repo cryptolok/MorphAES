@@ -306,7 +306,7 @@ print "		                       | |                             "
 print "		                       |_|                             "
 print ""
 print "			 IDPS & SandBox & AntiVirus STEALTH KILLER"
-print ""
+print "\033[0m"
 
 key = genKey()
 # we will use a random 16 bytes (128 bits) key/encryption since, it's more fast and fairly enough, however, we don't want badchars in our key/code
