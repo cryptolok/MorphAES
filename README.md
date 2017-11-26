@@ -45,7 +45,7 @@ sudo apt-get install python
 as --64 AES.s -o AES.o
 ld AES.o -o AES
 ```
-Execute the Pyhton script and enter your shellcode or nothing for a default Linux shell. You can specify your own execution address as well.
+Execute the Python script and enter your shellcode or nothing for a default Linux shell. You can specify your own execution address as well.
 
 It is also possible to build and execute on Windows/BSD/Mac, but I'm still testing it.
 
