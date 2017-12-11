@@ -2,6 +2,7 @@
 
 #-*- encoding:utf-8 -*-
 
+import subprocess
 from commands import getstatusoutput as shell
 from random import randint, shuffle
 from sys import argv
@@ -27,12 +28,14 @@ def genKey():
 
 cipher=dirname(realpath(__file__))+"/AES"
 
-def cryptCode(key,shellcode):
-# we need to use a file as a pipe, otherwise Python will fail input encoding...
-        file=open("/tmp/AEShellcode.s","w")
-        file.write(key+shellcode)
-        file.close()
-        return shell("cat /tmp/AEShellcode.s | "+cipher)[1]
+
+def cryptCode(key, shellcode):
+	proc = subprocess.Popen([cipher], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	output, _ = proc.communicate(key + shellcode)
+	while proc.poll is None:
+		out, = proc.communicate()
+		output += out
+	return output
 
 def crypt(shellcode):
 	global key
